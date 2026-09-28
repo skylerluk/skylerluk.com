@@ -77,7 +77,7 @@ export const projectAssets: Record<string, ProjectAssets> = {
     ],
   },
 
-  // BrainForge — captured from a local run (Today, skill map, diagnostic).
+  // BrainForge — captured from a local run (Today).
   brainforge: {
     logo: '/assets/brainforge/logo.png',
     screenshots: [
@@ -85,19 +85,6 @@ export const projectAssets: Record<string, ProjectAssets> = {
         src: '/assets/brainforge/01.webp',
         alt: 'BrainForge — Today: where to focus, the diagnostic, and the daily workout',
         aspect: 1440 / 900,
-        caption: 'Today',
-      },
-      {
-        src: '/assets/brainforge/02.webp',
-        alt: 'BrainForge — skill map with mastery and confidence per skill',
-        aspect: 1440 / 900,
-        caption: 'Skill map',
-      },
-      {
-        src: '/assets/brainforge/03.webp',
-        alt: 'BrainForge — the adaptive mini-diagnostic: four sections, adaptive difficulty',
-        aspect: 1440 / 900,
-        caption: 'Diagnostic',
       },
     ],
   },

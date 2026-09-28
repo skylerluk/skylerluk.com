@@ -13,6 +13,12 @@
   max-width: 960px;
 }
 
+/* Portrait single frame: one phone, sized like a carousel slide (a touch
+   larger since it stands alone) rather than filling the whole stage. */
+.portrait.single {
+  max-width: 200px;
+}
+
 /* A shot = the frame plus its descriptive caption, stacked and centered. Width
  * is governed by the parent slot (carousel slide) or the single-group. */
 .shot {
