@@ -3,10 +3,11 @@
 // portrait, 1–3 shots) plus the caption. A quiet crossfade plays on change; the
 // pane always stays --paper. Reduced-motion swaps instantly. Owns preview/* only.
 
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { usePortfolio } from '../../app/PortfolioProvider'
 import { ShotGroup } from './ShotGroup'
 import { RevenueRamp } from './RevenueRamp'
+import { Funnel } from './Funnel'
 import { useHashSync, useNeighborPreload } from './usePreviewSync'
 import type { ProjectLink } from '../../data/types'
 import styles from './Preview.module.css'
@@ -33,6 +34,15 @@ function renderBullet(text: string, link?: ProjectLink): ReactNode {
   ))
 }
 
+const OUT_MS = 140 // how long the outgoing preview takes to ease away
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
 export function Preview() {
   const { projects, activeIndex, setActiveIndex } = usePortfolio()
 
@@ -40,7 +50,26 @@ export function Preview() {
   useHashSync({ projects, activeIndex, setActiveIndex })
   useNeighborPreload({ projects, activeIndex })
 
-  const project = projects[activeIndex]
+  // Soft transition: the current preview eases out, then the new one eases
+  // in. `shown` lags `activeIndex` by OUT_MS so both phases get to play.
+  const target = projects[activeIndex]
+  const [shownId, setShownId] = useState(target?.id)
+  const [leaving, setLeaving] = useState(false)
+  useEffect(() => {
+    if (!target || target.id === shownId) return
+    if (prefersReducedMotion()) {
+      setShownId(target.id)
+      return
+    }
+    setLeaving(true)
+    const t = window.setTimeout(() => {
+      setShownId(target.id)
+      setLeaving(false)
+    }, OUT_MS)
+    return () => window.clearTimeout(t)
+  }, [target, shownId])
+
+  const project = projects.find((p) => p.id === shownId) ?? target
   if (!project) return null
 
   // Clients render in the caption normally, but move under the revenue ramp when
@@ -79,7 +108,10 @@ export function Preview() {
     >
       {/* key={project.id} restarts the enter animation on every change; a
           consistent flex layout keeps height stable so there's no jump. */}
-      <div className={styles.fade} key={project.id}>
+      <div
+        className={`${styles.fade} ${leaving ? styles.leaving : ''}`}
+        key={project.id}
+      >
         {(() => {
           const shots = (
             <ShotGroup
@@ -106,7 +138,7 @@ export function Preview() {
 
         <div
           className={`${styles.captionRow} ${
-            project.revenueRamp ? styles.captionRowTop : ''
+            project.revenueRamp || project.funnel ? styles.captionRowTop : ''
           }`}
         >
           <div className={styles.caption}>
@@ -159,11 +191,13 @@ export function Preview() {
             {!project.revenueRamp && clientsBlock}
           </div>
 
-          {/* Right-hand slot: a project has either a revenue ramp (BSG) or the
-              "by the numbers" ledger (Sailor-style), never both. Prefer the ramp.
-              Clients move under the ramp when present. */}
+          {/* Right-hand slot: a project has one of a revenue ramp (BSG), a
+              measured funnel (Peppin) or the "by the numbers" ledger
+              (Sailor-style), never several. Clients move under the ramp. */}
           {project.revenueRamp ? (
             <RevenueRamp {...project.revenueRamp}>{clientsBlock}</RevenueRamp>
+          ) : project.funnel ? (
+            <Funnel {...project.funnel} />
           ) : (
             project.metrics &&
             project.metrics.length > 0 && (

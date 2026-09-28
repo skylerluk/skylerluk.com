@@ -26,6 +26,69 @@
 import type { ProjectAssets } from './types'
 
 export const projectAssets: Record<string, ProjectAssets> = {
+  // Peppin — real iMessage threads (photo logging) + the penguin mark.
+  peppin: {
+    logo: '/assets/peppin/logo.png',
+    screenshots: [
+      {
+        src: '/assets/peppin/01.webp',
+        alt: 'Peppin in iMessage — a run gets logged, then an acai bowl photo comes back as ~7g protein · ~8g fiber · ~530 cal',
+        caption: 'Photo logging',
+      },
+      {
+        src: '/assets/peppin/02.webp',
+        alt: 'Peppin in iMessage — a workout logged as 30 minutes, then a chicken caesar wrap photo estimated at ~39g protein',
+        caption: 'Daily check-in',
+      },
+    ],
+  },
+
+  // Boi — the "your year in messages" share card (synthetic names), 4:3 crop.
+  boi: {
+    logo: '/assets/boi/logo.png',
+    screenshots: [
+      {
+        src: '/assets/boi/01.webp',
+        alt: 'Boi — “your year in messages”: 38% of your 16 closest friendships went quiet this year',
+        aspect: 4 / 3,
+      },
+    ],
+  },
+
+  // Sunflower — captured from the dev build on the iOS 26 simulator (fixture entries).
+  sunflower: {
+    logo: '/assets/sunflower/logo.png',
+    screenshots: [
+      {
+        src: '/assets/sunflower/01.webp',
+        alt: 'Sunflower — September calendar with waveform and photo tiles, “57 days remembered”',
+        caption: 'Calendar',
+      },
+      {
+        src: '/assets/sunflower/02.webp',
+        alt: 'Sunflower — the recorder with a live waveform',
+        caption: 'Record',
+      },
+      {
+        src: '/assets/sunflower/03.webp',
+        alt: 'Sunflower — “In Your Words”, exact quotes from your own transcripts by day, week and month',
+        caption: 'In Your Words',
+      },
+    ],
+  },
+
+  // BrainForge — captured from a local run (Today).
+  brainforge: {
+    logo: '/assets/brainforge/logo.png',
+    screenshots: [
+      {
+        src: '/assets/brainforge/01.webp',
+        alt: 'BrainForge — Today: where to focus, the diagnostic, and the daily workout',
+        aspect: 1440 / 900,
+      },
+    ],
+  },
+
   // E1 — Sailor (real assets, optimized from Skyler's app screens).
   sailor: {
     logo: '/assets/sailor/logo.png',

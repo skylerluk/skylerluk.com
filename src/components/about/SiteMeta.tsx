@@ -7,7 +7,7 @@ import { siteConfig } from '../../data'
 import styles from './SiteMeta.module.css'
 
 // Update on releases. Not derived from a fabricated future date.
-const UPDATED = '07.2026'
+const UPDATED = '09.2026'
 
 // TODO(decision): visitor count source — omitted for v1 (a fake count is worse than none).
 
