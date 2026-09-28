@@ -3,7 +3,10 @@
 
 .phone {
   margin: 0;
-  width: 100%;
+  /* Height-driven: the stage may only take so much of the viewport, so the
+     caption row (bullets + ledger/funnel) always stays in view beneath it. */
+  width: auto;
+  height: min(40vh, 360px);
   aspect-ratio: 9 / 19.5;
   border-radius: 26px;
   overflow: hidden;

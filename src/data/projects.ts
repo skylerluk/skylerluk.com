@@ -115,7 +115,7 @@ export const projectsBase: ProjectBase[] = [
       { value: '1,700', label: 'tests' },
       { value: '3', label: 'languages' },
     ],
-    orientation: 'portrait',
+    orientation: 'landscape',
     theme: 'dark',
     contentComplete: true,
   },

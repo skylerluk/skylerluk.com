@@ -43,14 +43,14 @@ export const projectAssets: Record<string, ProjectAssets> = {
     ],
   },
 
-  // Boi — "your year in messages" share cards (synthetic names) + gray wordmark.
+  // Boi — the "your year in messages" share card (synthetic names), 4:3 crop.
   boi: {
     logo: '/assets/boi/logo.png',
     screenshots: [
       {
         src: '/assets/boi/01.webp',
-        alt: 'Boi — “your year in messages” share card: 38% of your 16 closest friendships went quiet this year',
-        caption: 'Year in messages',
+        alt: 'Boi — “your year in messages”: 38% of your 16 closest friendships went quiet this year',
+        aspect: 4 / 3,
       },
     ],
   },

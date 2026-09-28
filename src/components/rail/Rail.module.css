@@ -9,6 +9,9 @@
      padding, and overflow only on the scroll axis. */
   max-height: 100vh;
   max-height: 100dvh;
+  /* Fill the lane so the list can scroll within it. */
+  align-self: stretch;
+  height: 100%;
 }
 
 .rail {
@@ -18,10 +21,15 @@
   gap: var(--space-4);
   list-style: none;
   /* Extra inline room so a scaled-up active tile isn't clipped by overflow. */
-  padding: var(--space-4) var(--space-5);
+  /* Half a viewport of padding top and bottom so the active tile — including
+     the first and last — can always sit at the vertical middle of the lane. */
+  padding: calc(50dvh - 40px) var(--space-5);
   margin: 0;
+  height: 100%;
+  box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  scroll-behavior: smooth;
   /* Hidden scrollbar — the surface stays seamless. */
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -99,6 +107,7 @@
     scroll-snap-type: x proximity;
     /* ≥44px hit area even though the tile visual stays 46px. */
     padding: var(--space-3);
+    height: auto;
   }
 
   .tile {

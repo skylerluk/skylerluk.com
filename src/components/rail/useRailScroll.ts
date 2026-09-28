@@ -11,6 +11,7 @@ import { usePortfolio } from '../../app/PortfolioProvider'
 // trackpad gesture flows smoothly through projects instead of stopping on each.
 const STEP = 90 // wheel delta that advances one project (~one mouse notch)
 const CARRY_CAP = STEP // clamp leftover so momentum can't run away unbounded
+const MIN_STEP_MS = 150 // pace steps so a flick glides one-by-one, not in bursts
 
 interface UseRailScrollArgs {
   listRef: RefObject<HTMLUListElement | null>
@@ -59,6 +60,7 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
   // Wheel + keyboard engine — registered once.
   useEffect(() => {
     let accum = 0
+    let lastStepAt = 0
 
     const atFirst = () => stateRef.current.activeIndex <= 0
     const atLast = () =>
@@ -82,13 +84,19 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
       e.preventDefault()
       accum += e.deltaY
 
-      while (accum >= STEP && !atLast()) {
-        stateRef.current.next()
-        accum -= STEP
-      }
-      while (accum <= -STEP && !atFirst()) {
-        stateRef.current.prev()
-        accum += STEP
+      // At most one step per MIN_STEP_MS; the remainder carries (capped) so a
+      // long flick keeps gliding on subsequent events instead of jumping.
+      const now = performance.now()
+      if (now - lastStepAt >= MIN_STEP_MS) {
+        if (accum >= STEP && !atLast()) {
+          stateRef.current.next()
+          accum -= STEP
+          lastStepAt = now
+        } else if (accum <= -STEP && !atFirst()) {
+          stateRef.current.prev()
+          accum += STEP
+          lastStepAt = now
+        }
       }
 
       // Clamp leftover so momentum can't build up unbounded between steps.

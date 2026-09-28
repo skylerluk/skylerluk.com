@@ -45,6 +45,18 @@
   /* Labeled slot — Track B (B2) fills real meta content here. */
 }
 
+/* Desktop: pin the shell to the viewport so the rail lane has a definite
+   height to scroll within and the preview always fits above the footer. */
+@media (min-width: 861px) {
+  .shell {
+    height: 100vh;
+    height: 100dvh;
+    /* minmax(0, 1fr): the content row may not grow past the space left above
+       the footer, so the rail lane and preview get a definite height. */
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+}
+
 /* ---- Responsive: stack to a single column below ~860px ---- */
 @media (max-width: 860px) {
   .shell {
