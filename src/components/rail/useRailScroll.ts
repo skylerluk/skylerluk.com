@@ -11,7 +11,7 @@ import { usePortfolio } from '../../app/PortfolioProvider'
 // trackpad gesture flows smoothly through projects instead of stopping on each.
 const STEP = 90 // wheel delta that advances one project (~one mouse notch)
 const CARRY_CAP = STEP // clamp leftover so momentum can't run away unbounded
-const MIN_STEP_MS = 150 // pace steps so a flick glides one-by-one, not in bursts
+const MIN_STEP_MS = 260 // pace steps so a flick glides one-by-one, not in bursts
 
 interface UseRailScrollArgs {
   listRef: RefObject<HTMLUListElement | null>

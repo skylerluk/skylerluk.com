@@ -53,7 +53,7 @@
   overflow: hidden;
   /* Icons always render at full opacity (selected tile is emphasized by scale). */
   opacity: 1;
-  transition: transform 0.18s ease;
+  transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 /* Real square logo (Track E): fill the tile edge-to-edge (no padding). */
