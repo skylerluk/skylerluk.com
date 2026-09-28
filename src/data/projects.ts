@@ -16,9 +16,9 @@ export const projectsBase: ProjectBase[] = [
     stack: ['Bun', 'Postgres', 'iMessage', 'Stripe'],
     link: { label: 'peppin.ai', href: 'https://peppin.ai' },
     bullets: [
-      'Live at peppin.ai with real users on iMessage; Stripe subscriptions, meal-photo macros, and 7 wearable integrations',
-      'Deterministic pre-classifier and boot-time safety canaries gate every LLM call; DeepSeek primary, Gemini fallback behind a circuit breaker',
-      '650 commits, 88 migrations and 200+ test files in 6 weeks; a replay harness re-runs every production conversation on each change',
+      'Live at peppin.ai with real users, Stripe billing and meal-photo macros',
+      'Deterministic pre-classifier and safety canaries gate every LLM call',
+      '650 commits, 88 migrations and 200+ test files in 6 weeks',
     ],
     // Measured in the admin console (Sep 2026). The funnel is the Sep 18–25 paid-ads
     // cohort; the headline is the all-time replay corpus.
@@ -105,9 +105,9 @@ export const projectsBase: ProjectBase[] = [
     status: 'Prototype',
     stack: ['Swift', 'TypeScript', 'Railway'],
     bullets: [
-      'Each morning Boi texts you the people waiting on a reply, with two drafts in your own voice; nothing is ever auto-sent',
-      'Signed, notarized macOS menu-bar app reads iMessage read-only and uploads per-relationship summaries, never raw text',
-      'Agent loop with 14 tools on a Fastify/Postgres backend; ran a closed beta with external testers',
+      'Texts you who is waiting on a reply, with two drafts in your voice',
+      'Notarized Mac app reads iMessage read-only; uploads summaries, never messages',
+      '14-tool agent loop on Fastify and Postgres; closed beta with real testers',
     ],
     metrics: [
       { value: '487', label: 'commits · 20 days' },
@@ -130,9 +130,9 @@ export const projectsBase: ProjectBase[] = [
     stack: ['Expo', 'React Native', 'Hono'],
     link: { label: 'sunflowervoice.com', href: 'https://sunflowervoice.com' },
     bullets: [
-      'Every quote shown is an exact span of your transcript: the model selects, never writes, and server and client both verify it',
-      'On-device Apple Speech transcription, Face ID lock, and a privacy-hardened API that never logs journal text',
-      'Scaffold to working build in 3 days; site live at sunflowervoice.com, App Store submission in progress',
+      'Every quote is an exact span of your transcript; the model selects, never writes',
+      'On-device transcription, Face ID lock, and an API that never logs journal text',
+      'Built in 3 days; live at sunflowervoice.com, App Store submission in progress',
     ],
     metrics: [
       { value: '3 days', label: 'build' },
@@ -154,9 +154,9 @@ export const projectsBase: ProjectBase[] = [
     status: 'Internal',
     stack: ['Next.js', 'Postgres', 'Drizzle'],
     bullets: [
-      'Mastery model tracks 20 skills with uncertainty and evidence weighting, so low-confidence AI grades barely move the score',
-      'Adaptive scheduler assembles 30–45 minute workouts from 185 practice items, 90 spaced-repetition flashcards and 6 lessons',
-      'Runs fully without AI via deterministic fallbacks; hand-written auth with Google OAuth and invite gating',
+      'Tracks 20 skills with uncertainty-weighted mastery estimates',
+      'Adaptive 30–45 minute workouts from 185 items and 90 flashcards',
+      'Runs fully without AI; hand-written auth with Google OAuth',
     ],
     metrics: [
       { value: '10 days', label: 'build' },
