@@ -1,17 +1,20 @@
 // Track C — C1 scroll engine. The signature interaction: scrolling anywhere
-// over the single-screen app steps through projects and swaps the preview.
+// over the single-screen app moves through projects and swaps the preview.
 // Encapsulated here so we never touch App.tsx — listeners attach to window/
 // document from within the hook. Owns src/components/rail/* only.
+//
+// Model: a continuous position `pos` (in project units) that tracks wheel
+// distance one-to-one, so the rail moves exactly as much as you scroll and
+// stops the moment you do — no banked momentum, no overshoot. The active
+// project is whichever tile is nearest the centre; when input goes quiet the
+// rail settles onto it with a short ease (a scroll-snap feel).
 
 import { useEffect, useRef, type RefObject } from 'react'
 import { usePortfolio } from '../../app/PortfolioProvider'
 
-// Fluid pacing (reference: bguillaume.info). Scroll distance maps directly to
-// steps with momentum carried over — no post-step lock, so a continuous wheel /
-// trackpad gesture flows smoothly through projects instead of stopping on each.
-const STEP = 90 // wheel delta that advances one project (~one mouse notch)
-const STEP_MS = 240 // cadence between queued steps — one preview transition
-const MAX_QUEUE = 5 // a big flick can bank up to this many steps
+const PX_PER_PROJECT = 110 // wheel distance that moves one project
+const IDLE_MS = 90 // quiet this long → settle onto the nearest project
+const SETTLE_MS = 220 // ease duration for the settle
 
 interface UseRailScrollArgs {
   listRef: RefObject<HTMLUListElement | null>
@@ -26,8 +29,6 @@ function prefersReducedMotion(): boolean {
 }
 
 // True when the event originates inside a text field — don't hijack those.
-// Guards against a non-Element target (e.g. window/document) having no
-// .closest before we call it.
 function isEditableTarget(target: EventTarget | null): boolean {
   return (
     target instanceof Element &&
@@ -35,119 +36,166 @@ function isEditableTarget(target: EventTarget | null): boolean {
   )
 }
 
+const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
+
 export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
-  const { activeIndex, projects, next, prev, setActiveIndex } = usePortfolio()
+  const { activeIndex, projects, setActiveIndex } = usePortfolio()
   const count = projects.length
 
-  // Latest values read inside the (once-registered) listeners without
-  // re-binding them every render.
-  const stateRef = useRef({ activeIndex, count, next, prev, setActiveIndex })
-  stateRef.current = { activeIndex, count, next, prev, setActiveIndex }
+  const stateRef = useRef({ activeIndex, count, setActiveIndex })
+  stateRef.current = { activeIndex, count, setActiveIndex }
 
-  // Center the active tile whenever the index changes (smooth, or instant
-  // under reduced-motion).
+  // Continuous rail position in project units, and whether the wheel owns it
+  // right now (so an external index change — click, key, hash — can take over).
+  const posRef = useRef(activeIndex)
+  const wheelingRef = useRef(false)
+
+  // Centre of tile `i` measured within the list's scroll content.
+  const tileCenter = (i: number) => {
+    const list = listRef.current
+    const tile = tileRefs.current?.[i]
+    if (!list || !tile) return 0
+    const lr = list.getBoundingClientRect()
+    const tr = tile.getBoundingClientRect()
+    return list.scrollTop + (tr.top - lr.top) + tr.height / 2
+  }
+  const tileCenterX = (i: number) => {
+    const list = listRef.current
+    const tile = tileRefs.current?.[i]
+    if (!list || !tile) return 0
+    const lr = list.getBoundingClientRect()
+    const tr = tile.getBoundingClientRect()
+    return list.scrollLeft + (tr.left - lr.left) + tr.width / 2
+  }
+
+  // Put the rail at fractional position `p` (interpolating between tiles).
+  const applyPos = (p: number) => {
+    const list = listRef.current
+    if (!list) return
+    const lo = Math.floor(p)
+    const hi = Math.min(stateRef.current.count - 1, lo + 1)
+    const f = p - lo
+    const horizontal = list.scrollWidth > list.clientWidth + 1
+    if (horizontal) {
+      const c = tileCenterX(lo) + (tileCenterX(hi) - tileCenterX(lo)) * f
+      list.scrollLeft = c - list.clientWidth / 2
+    } else {
+      const c = tileCenter(lo) + (tileCenter(hi) - tileCenter(lo)) * f
+      list.scrollTop = c - list.clientHeight / 2
+    }
+  }
+
+  // External index changes (click, keyboard, hash): glide the rail there.
   useEffect(() => {
-    const tile = tileRefs.current?.[activeIndex]
-    if (!tile) return
-    const reduce = prefersReducedMotion()
-    tile.scrollIntoView({
-      behavior: reduce ? 'auto' : 'smooth',
-      block: 'center',
-      inline: 'center',
-    })
-  }, [activeIndex, tileRefs])
+    if (wheelingRef.current) return
+    const from = posRef.current
+    const to = activeIndex
+    if (prefersReducedMotion() || Math.abs(to - from) < 0.001) {
+      posRef.current = to
+      applyPos(to)
+      return
+    }
+    let raf = 0
+    const t0 = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - t0) / 320)
+      posRef.current = from + (to - from) * easeOut(t)
+      applyPos(posRef.current)
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
 
   // Wheel + keyboard engine — registered once.
   useEffect(() => {
-    // Wheel distance banks into `queue` (signed steps). A drain timer plays
-    // them one at a time at STEP_MS so a single flick glides through several
-    // projects, each with a full transition, instead of stopping at the next
-    // one or jumping several at once.
-    let accum = 0
-    let queue = 0
-    let timer: number | null = null
-    let lastStepAt = -Infinity
+    let idleTimer: number | null = null
+    let settleRaf = 0
 
-    const atFirst = () => stateRef.current.activeIndex <= 0
-    const atLast = () =>
-      stateRef.current.activeIndex >= stateRef.current.count - 1
+    const clamp = (p: number) =>
+      Math.max(0, Math.min(stateRef.current.count - 1, p))
 
-    const drain = () => {
-      timer = null
-      if (queue > 0 && !atLast()) {
-        stateRef.current.next()
-        queue -= 1
-      } else if (queue < 0 && !atFirst()) {
-        stateRef.current.prev()
-        queue += 1
-      } else {
-        queue = 0
-      }
-      lastStepAt = performance.now()
-      if (queue !== 0) timer = window.setTimeout(drain, STEP_MS)
+    const cancelSettle = () => {
+      if (settleRaf) cancelAnimationFrame(settleRaf)
+      settleRaf = 0
     }
 
-    // Next step lands STEP_MS after the previous one, whether it was queued
-    // or came from a fresh wheel event.
-    const schedule = () => {
-      if (timer !== null) return
-      const wait = Math.max(0, STEP_MS - (performance.now() - lastStepAt))
-      timer = window.setTimeout(drain, wait)
+    // Ease from the current fractional position onto the nearest tile.
+    const settle = () => {
+      idleTimer = null
+      const from = posRef.current
+      const to = Math.round(from)
+      if (prefersReducedMotion() || Math.abs(to - from) < 0.002) {
+        posRef.current = to
+        applyPos(to)
+        wheelingRef.current = false
+        return
+      }
+      const t0 = performance.now()
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / SETTLE_MS)
+        posRef.current = from + (to - from) * easeOut(t)
+        applyPos(posRef.current)
+        if (t < 1) settleRaf = requestAnimationFrame(tick)
+        else {
+          settleRaf = 0
+          wheelingRef.current = false
+        }
+      }
+      settleRaf = requestAnimationFrame(tick)
     }
 
     const onWheel = (e: WheelEvent) => {
-      // Don't hijack while typing in a field (defensive — no inputs today).
       if (isEditableTarget(e.target)) return
 
       const down = e.deltaY > 0
-
-      // Edge release: let the page scroll normally at the ends (with nothing
-      // queued in that direction).
-      if (
-        (down && atLast() && queue <= 0) ||
-        (!down && atFirst() && queue >= 0)
-      ) {
-        accum = 0
-        queue = 0
+      const p = posRef.current
+      // Edge release: at either end, let the page scroll normally.
+      if ((down && p >= stateRef.current.count - 1) || (!down && p <= 0)) {
         return
       }
-
       e.preventDefault()
 
-      // A reversal drops whatever was banked the other way.
-      if (accum > 0 !== down) accum = 0
-      if ((queue > 0 && !down) || (queue < 0 && down)) queue = 0
+      cancelSettle()
+      wheelingRef.current = true
 
-      accum += e.deltaY
-      const steps = Math.trunc(accum / STEP)
-      if (steps !== 0) {
-        accum -= steps * STEP
-        queue = Math.max(-MAX_QUEUE, Math.min(MAX_QUEUE, queue + steps))
-        schedule()
+      // Track the wheel one-to-one.
+      posRef.current = clamp(p + e.deltaY / PX_PER_PROJECT)
+      applyPos(posRef.current)
+
+      // Nearest tile is the active project; the preview follows as you pass
+      // each midpoint.
+      const nearest = Math.round(posRef.current)
+      if (nearest !== stateRef.current.activeIndex) {
+        stateRef.current.setActiveIndex(nearest)
       }
+
+      if (idleTimer !== null) window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(settle, IDLE_MS)
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (isEditableTarget(e.target)) return
-
+      const { activeIndex, count, setActiveIndex } = stateRef.current
       switch (e.key) {
         case 'ArrowDown':
         case 'ArrowRight':
           e.preventDefault()
-          stateRef.current.next()
+          setActiveIndex(Math.min(count - 1, activeIndex + 1))
           break
         case 'ArrowUp':
         case 'ArrowLeft':
           e.preventDefault()
-          stateRef.current.prev()
+          setActiveIndex(Math.max(0, activeIndex - 1))
           break
         case 'Home':
           e.preventDefault()
-          stateRef.current.setActiveIndex(0)
+          setActiveIndex(0)
           break
         case 'End':
           e.preventDefault()
-          stateRef.current.setActiveIndex(stateRef.current.count - 1)
+          setActiveIndex(count - 1)
           break
         default:
           break
@@ -159,13 +207,11 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
     window.addEventListener('keydown', onKeyDown)
 
     return () => {
-      if (timer !== null) window.clearTimeout(timer)
+      if (idleTimer !== null) window.clearTimeout(idleTimer)
+      cancelSettle()
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKeyDown)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // listRef is reserved for C2 (overflow container tuning); referenced so the
-  // arg stays part of the stable hook signature.
-  void listRef
 }
