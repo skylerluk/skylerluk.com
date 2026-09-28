@@ -10,8 +10,8 @@ import { usePortfolio } from '../../app/PortfolioProvider'
 // steps with momentum carried over — no post-step lock, so a continuous wheel /
 // trackpad gesture flows smoothly through projects instead of stopping on each.
 const STEP = 90 // wheel delta that advances one project (~one mouse notch)
-const CARRY_CAP = STEP // clamp leftover so momentum can't run away unbounded
-const MIN_STEP_MS = 260 // pace steps so a flick glides one-by-one, not in bursts
+const STEP_MS = 240 // cadence between queued steps — one preview transition
+const MAX_QUEUE = 5 // a big flick can bank up to this many steps
 
 interface UseRailScrollArgs {
   listRef: RefObject<HTMLUListElement | null>
@@ -59,12 +59,41 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
 
   // Wheel + keyboard engine — registered once.
   useEffect(() => {
+    // Wheel distance banks into `queue` (signed steps). A drain timer plays
+    // them one at a time at STEP_MS so a single flick glides through several
+    // projects, each with a full transition, instead of stopping at the next
+    // one or jumping several at once.
     let accum = 0
-    let lastStepAt = 0
+    let queue = 0
+    let timer: number | null = null
+    let lastStepAt = -Infinity
 
     const atFirst = () => stateRef.current.activeIndex <= 0
     const atLast = () =>
       stateRef.current.activeIndex >= stateRef.current.count - 1
+
+    const drain = () => {
+      timer = null
+      if (queue > 0 && !atLast()) {
+        stateRef.current.next()
+        queue -= 1
+      } else if (queue < 0 && !atFirst()) {
+        stateRef.current.prev()
+        queue += 1
+      } else {
+        queue = 0
+      }
+      lastStepAt = performance.now()
+      if (queue !== 0) timer = window.setTimeout(drain, STEP_MS)
+    }
+
+    // Next step lands STEP_MS after the previous one, whether it was queued
+    // or came from a fresh wheel event.
+    const schedule = () => {
+      if (timer !== null) return
+      const wait = Math.max(0, STEP_MS - (performance.now() - lastStepAt))
+      timer = window.setTimeout(drain, wait)
+    }
 
     const onWheel = (e: WheelEvent) => {
       // Don't hijack while typing in a field (defensive — no inputs today).
@@ -72,36 +101,30 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
 
       const down = e.deltaY > 0
 
-      // Edge release: let the page scroll normally at the ends.
-      if ((down && atLast()) || (!down && atFirst())) {
+      // Edge release: let the page scroll normally at the ends (with nothing
+      // queued in that direction).
+      if (
+        (down && atLast() && queue <= 0) ||
+        (!down && atFirst() && queue >= 0)
+      ) {
         accum = 0
+        queue = 0
         return
       }
 
-      // Consume the gesture to drive the rail. Accumulated scroll distance maps
-      // directly to steps (remainder carried), so a continuous wheel/trackpad
-      // gesture flows through projects with momentum — no per-step lock.
       e.preventDefault()
+
+      // A reversal drops whatever was banked the other way.
+      if (accum > 0 !== down) accum = 0
+      if ((queue > 0 && !down) || (queue < 0 && down)) queue = 0
+
       accum += e.deltaY
-
-      // At most one step per MIN_STEP_MS; the remainder carries (capped) so a
-      // long flick keeps gliding on subsequent events instead of jumping.
-      const now = performance.now()
-      if (now - lastStepAt >= MIN_STEP_MS) {
-        if (accum >= STEP && !atLast()) {
-          stateRef.current.next()
-          accum -= STEP
-          lastStepAt = now
-        } else if (accum <= -STEP && !atFirst()) {
-          stateRef.current.prev()
-          accum += STEP
-          lastStepAt = now
-        }
+      const steps = Math.trunc(accum / STEP)
+      if (steps !== 0) {
+        accum -= steps * STEP
+        queue = Math.max(-MAX_QUEUE, Math.min(MAX_QUEUE, queue + steps))
+        schedule()
       }
-
-      // Clamp leftover so momentum can't build up unbounded between steps.
-      if (accum > CARRY_CAP) accum = CARRY_CAP
-      else if (accum < -CARRY_CAP) accum = -CARRY_CAP
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -136,6 +159,7 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
     window.addEventListener('keydown', onKeyDown)
 
     return () => {
+      if (timer !== null) window.clearTimeout(timer)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKeyDown)
     }
