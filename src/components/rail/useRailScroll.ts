@@ -7,8 +7,7 @@
 // then the engine steps once and locks briefly so a trackpad flick (dozens of
 // small events plus inertia) reads as a single deliberate step instead of
 // racing through several projects. A mouse notch (~100) still steps at once.
-// When the page itself overflows (a tall preview on a short window) the wheel
-// is left alone until the page reaches its edge, so captions stay readable.
+// Stepping brings the page back to the top so each preview starts in view.
 
 import { useEffect, useRef, type RefObject } from 'react'
 import { usePortfolio } from '../../app/PortfolioProvider'
@@ -37,16 +36,6 @@ function isEditableTarget(target: EventTarget | null): boolean {
   )
 }
 
-// Can the document itself still scroll in this direction? When it can, the
-// wheel belongs to the page, not the rail.
-function pageCanScroll(down: boolean): boolean {
-  const doc = document.documentElement
-  const max = doc.scrollHeight - window.innerHeight
-  if (max <= 1) return false
-  const y = window.scrollY
-  return down ? y < max - 1 : y > 1
-}
-
 export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
   const { activeIndex, projects, next, prev, setActiveIndex } = usePortfolio()
   const count = projects.length
@@ -64,15 +53,18 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
     const tile = tileRefs.current?.[activeIndex]
     if (!list || !tile) return
     const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth'
+    const lr = list.getBoundingClientRect()
+    const tr = tile.getBoundingClientRect()
     const horizontal = list.scrollWidth > list.clientWidth + 1
     if (horizontal) {
       list.scrollTo({
-        left: tile.offsetLeft - list.clientWidth / 2 + tile.offsetWidth / 2,
+        left:
+          list.scrollLeft + (tr.left - lr.left) - lr.width / 2 + tr.width / 2,
         behavior,
       })
     } else if (list.scrollHeight > list.clientHeight + 1) {
       list.scrollTo({
-        top: tile.offsetTop - list.clientHeight / 2 + tile.offsetHeight / 2,
+        top: list.scrollTop + (tr.top - lr.top) - lr.height / 2 + tr.height / 2,
         behavior,
       })
     }
@@ -94,12 +86,6 @@ export function useRailScroll({ listRef, tileRefs }: UseRailScrollArgs) {
 
       const down = e.deltaY > 0
       const now = performance.now()
-
-      // The page owns the wheel while it can still scroll this way.
-      if (pageCanScroll(down)) {
-        accum = 0
-        return
-      }
 
       // Edge release: let the browser handle overscroll at the ends.
       if ((down && atLast()) || (!down && atFirst())) {

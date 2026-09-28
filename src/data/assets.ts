@@ -101,4 +101,116 @@ export const projectAssets: Record<string, ProjectAssets> = {
       },
     ],
   },
+
+  // E1 — Sailor (real assets, optimized from Skyler's app screens).
+  sailor: {
+    logo: '/assets/sailor/logo.png',
+    screenshots: [
+      {
+        src: '/assets/sailor/01.webp',
+        alt: 'Sailor app — Inbox with AI-suggested next actions for each lead',
+        caption: 'Lead inbox',
+      },
+      {
+        src: '/assets/sailor/02.webp',
+        alt: 'Sailor app — Today dashboard showing pipeline commission and lead activity',
+        caption: 'Pipeline overview',
+      },
+      {
+        src: '/assets/sailor/03.webp',
+        alt: 'Sailor marketing site — “Your WhatsApp, Organized,” the first CRM built for mobile',
+        caption: 'Product website',
+      },
+    ],
+  },
+
+  // E2 — IBM Team Board.
+  team_board: {
+    logo: '/assets/team_board/logo.png',
+    screenshots: [
+      {
+        src: '/assets/team_board/01.webp',
+        alt: 'IBM Team Board — a “most wanted” style interactive team board for Jay Smith’s team',
+        aspect: 1248 / 797,
+      },
+    ],
+  },
+
+  // E2 — Personal site (interactive 3D desk).
+  'skyler-website': {
+    logo: '/assets/skyler-website/logo.png',
+    screenshots: [
+      {
+        src: '/assets/skyler-website/01.webp',
+        alt: 'Skyler Luk personal site — an interactive 3D desk scene to explore',
+        aspect: 1800 / 973,
+        caption: 'Click to open',
+      },
+    ],
+  },
+
+  // Berkeley Strategy Group — CRM pipeline screenshot + client logos.
+  bsg: {
+    logo: '/assets/bsg/bsg_logo_square.png', // wordmark centered on a white square
+    screenshots: [
+      {
+        src: '/assets/bsg/01.webp',
+        alt: 'BSG CRM — sales pipeline board (account names blurred)',
+        aspect: 1600 / 870,
+      },
+    ],
+    clients: [
+      { name: 'Amazon' },
+      { name: 'Tesla' },
+      { name: 'Uber' },
+      { name: 'Rackspace' },
+    ],
+  },
+
+  // Uber Wrapped — three "wrapped" screens, framed as uniform squares.
+  'uber-wrapped': {
+    logo: '/assets/uber-wrapped/uber_logo_square.jpg',
+    screenshots: [
+      {
+        src: '/assets/uber-wrapped/01.webp',
+        alt: 'Uber Wrapped — “Breakfast Sandwich, your most-ordered item, 74 times”',
+        aspect: 1,
+      },
+      {
+        src: '/assets/uber-wrapped/02.webp',
+        alt: 'Uber Wrapped — “Your rides timeline,” yearly spend bar chart',
+        aspect: 1,
+      },
+      {
+        src: '/assets/uber-wrapped/03.webp',
+        alt: 'Uber Wrapped — all-time summary dashboard ($26,609 across 810 rides + orders)',
+        aspect: 1,
+      },
+    ],
+  },
+
+  // Karpathy Brain — knowledge-graph view.
+  'karpathy-brain': {
+    logo: '/assets/karpathy-brain/karpathy_logo_square.png',
+    screenshots: [
+      {
+        src: '/assets/karpathy-brain/01.webp',
+        alt: 'Karpathy Brain — interlinked knowledge graph of notes',
+        aspect: 1400 / 1395,
+      },
+    ],
+  },
+
+  // Anthology — venture studio site (SF × Dubai).
+  anthology: {
+    logo: '/assets/anthology/logo.png',
+    screenshots: [
+      {
+        src: '/assets/anthology/01.webp',
+        alt: 'Anthology — venture studio landing page (Golden Gate Bridge × Burj Khalifa)',
+        aspect: 1800 / 978,
+        caption: 'Click to open',
+      },
+    ],
+  },
 }
