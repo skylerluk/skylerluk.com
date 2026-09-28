@@ -35,6 +35,22 @@ export interface RevenueRamp {
   stats?: Metric[] // supporting real numbers (reuses the Metric type)
 }
 
+// A real conversion funnel (e.g. Peppin's ad cohort). Every step is a measured
+// count from the product's own analytics — nothing is illustrative here.
+export interface FunnelStep {
+  label: string
+  value: number
+}
+
+export interface Funnel {
+  headValue: string // '521' — the headline number
+  headLabel: string // 'messages exchanged'
+  cohortLabel: string // 'ad cohort · sep 18–25'
+  steps: FunnelStep[] // first step is the 100% bar
+  stats?: Metric[] // supporting real numbers
+  asOf?: string // 'as of sep 2026'
+}
+
 export interface ProjectBase {
   id: string // 'sailor'
   index: string // '01'
@@ -47,6 +63,7 @@ export interface ProjectBase {
   bullets?: string[] // optional highlight bullets shown under the one-liner
   metrics?: Metric[] // optional one-line "by the numbers" strip
   revenueRamp?: RevenueRamp // optional revenue-ramp chart (right-hand slot)
+  funnel?: Funnel // optional measured funnel (right-hand slot)
   orientation: Orientation
   theme: FrameTheme
   contentComplete: boolean // false => copy is placeholder (TODO)

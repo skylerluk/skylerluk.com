@@ -26,6 +26,69 @@
 import type { ProjectAssets } from './types'
 
 export const projectAssets: Record<string, ProjectAssets> = {
+  // Peppin — real iMessage threads (photo logging) + the penguin mark.
+  peppin: {
+    logo: '/assets/peppin/logo.png',
+    screenshots: [
+      {
+        src: '/assets/peppin/01.webp',
+        alt: 'Peppin in iMessage — a run gets logged, then an acai bowl photo comes back as ~7g protein · ~8g fiber · ~530 cal',
+        caption: 'Photo logging',
+      },
+      {
+        src: '/assets/peppin/02.webp',
+        alt: 'Peppin in iMessage — a workout logged as 30 minutes, then a chicken caesar wrap photo estimated at ~39g protein',
+        caption: 'Daily check-in',
+      },
+    ],
+  },
+
+  // Boi — "your year in messages" share cards (synthetic names) + gray wordmark.
+  boi: {
+    logo: '/assets/boi/logo.png',
+    screenshots: [
+      {
+        src: '/assets/boi/01.webp',
+        alt: 'Boi — “your year in messages” share card: 38% of your 16 closest friendships went quiet this year',
+        caption: 'Year in messages',
+      },
+    ],
+  },
+
+  // Sunflower — simulator shots from the marketing site + a bloom cropped from the app art.
+  sunflower: {
+    logo: '/assets/sunflower/logo.png',
+    screenshots: [
+      {
+        src: '/assets/sunflower/01.webp',
+        alt: 'Sunflower — calendar of September with waveform and photo tiles, “57 days remembered”',
+        caption: 'Calendar',
+      },
+      {
+        src: '/assets/sunflower/02.webp',
+        alt: 'Sunflower — the recorder with a live waveform',
+        caption: 'Record',
+      },
+      {
+        src: '/assets/sunflower/03.webp',
+        alt: 'Sunflower — “In Your Words”, exact quotes from your own transcripts by day, week and month',
+        caption: 'In Your Words',
+      },
+    ],
+  },
+
+  // BrainForge — landing page capture + a monogram tile (the app has no mark yet).
+  brainforge: {
+    logo: '/assets/brainforge/logo.png',
+    screenshots: [
+      {
+        src: '/assets/brainforge/01.webp',
+        alt: 'BrainForge — “Think first. Then get coached.” landing page for the daily reasoning workout',
+        aspect: 1440 / 900,
+      },
+    ],
+  },
+
   // E1 — Sailor (real assets, optimized from Skyler's app screens).
   sailor: {
     logo: '/assets/sailor/logo.png',

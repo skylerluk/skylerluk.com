@@ -1,0 +1,170 @@
+/* Measured funnel (Peppin). Same right-hand slot + visual language as the
+   revenue ramp: serif accent values, mono muted labels, tokens only. */
+
+.funnel {
+  flex: none;
+  align-self: flex-start;
+  width: min(100%, 360px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.value {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.span,
+.cohort,
+.asOf {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cohort {
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--hair);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* label | bar | count — the bar takes the free space. */
+.step {
+  display: grid;
+  grid-template-columns: 96px 1fr 64px;
+  align-items: center;
+  gap: var(--space-3);
+  opacity: 0;
+  animation: funnel-fade 320ms ease-out forwards;
+}
+
+.stepLabel {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.track {
+  display: block;
+  height: 10px;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 999px;
+  transform-origin: left center;
+  animation: funnel-grow 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 120ms both;
+}
+
+.stepValue {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--accent);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.stepPct {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+@keyframes funnel-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes funnel-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step,
+  .bar {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Supporting stat strip — identical to the ramp's. */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) 0;
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--hair);
+}
+
+.stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  white-space: nowrap;
+}
+
+.statSep {
+  margin: 0 0.55em;
+  color: var(--hair);
+}
+
+.statValue {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .funnel {
+    width: 100%;
+    align-self: center;
+  }
+}

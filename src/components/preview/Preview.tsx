@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import { usePortfolio } from '../../app/PortfolioProvider'
 import { ShotGroup } from './ShotGroup'
 import { RevenueRamp } from './RevenueRamp'
+import { Funnel } from './Funnel'
 import { useHashSync, useNeighborPreload } from './usePreviewSync'
 import type { ProjectLink } from '../../data/types'
 import styles from './Preview.module.css'
@@ -106,7 +107,7 @@ export function Preview() {
 
         <div
           className={`${styles.captionRow} ${
-            project.revenueRamp ? styles.captionRowTop : ''
+            project.revenueRamp || project.funnel ? styles.captionRowTop : ''
           }`}
         >
           <div className={styles.caption}>
@@ -159,11 +160,13 @@ export function Preview() {
             {!project.revenueRamp && clientsBlock}
           </div>
 
-          {/* Right-hand slot: a project has either a revenue ramp (BSG) or the
-              "by the numbers" ledger (Sailor-style), never both. Prefer the ramp.
-              Clients move under the ramp when present. */}
+          {/* Right-hand slot: a project has one of a revenue ramp (BSG), a
+              measured funnel (Peppin) or the "by the numbers" ledger
+              (Sailor-style), never several. Clients move under the ramp. */}
           {project.revenueRamp ? (
             <RevenueRamp {...project.revenueRamp}>{clientsBlock}</RevenueRamp>
+          ) : project.funnel ? (
+            <Funnel {...project.funnel} />
           ) : (
             project.metrics &&
             project.metrics.length > 0 && (
